@@ -8,7 +8,7 @@ os.chdir(os.path.dirname(os.path.realpath(__file__)))
 sys.path.append(os.path.expanduser("../list_picker/"))
 
 from list_picker.utils.utils import *
-from list_picker.list_picker_app import *
+from list_picker.list_picker_app import Picker
 from list_picker.ui.list_picker_colours import get_colours
 from list_picker.utils.table_to_list_of_lists import *
 from list_picker.utils.options_selectors import default_option_selector
@@ -61,10 +61,10 @@ def begin(stdscr: curses.window):
         
         fman_data["items"] = list_entries
         fman_data["header"] = header
-        selected_entries, opts, fman_data = picker(
-            stdscr,
-            **fman_data,
-        )
+
+        EntriesPicker = Picker(stdscr, **fman_data)
+        selected_entries, opts, fman_data = EntriesPicker.run()
+
         if not selected_entries: break
         list_entries = fman_data["items"]
         # print(selected_entries)
