@@ -33,12 +33,12 @@ def begin(stdscr: curses.window):
         files.sort(key=lambda x: x.name.lower())
         
 
-        print("Files****")
-        for file in files:
-            print(file)
-        print("DIRs****")
-        for dir in dirs:
-            print(dir)
+        # print("Files****")
+        # for file in files:
+        #     print(file)
+        # print("DIRs****")
+        # for dir in dirs:
+        #     print(dir)
 
         header = ["Fname", "type", "st_mode", "st_ino", "st_dev", "st_nlink", "st_uid", "st_gid", "st_size", "st_atime", "st_mtime", "st_ctime"]
         list_entries = []
@@ -46,7 +46,7 @@ def begin(stdscr: curses.window):
         list_entries += [[f.name, 1, *list(f.stat())] for f in files]
         list_entries += [[s.name, 2] + ["" for _ in range(len(header)-2)] for s in symlinks]
         list_entries.insert(0, ["..", 0,] + list(os.stat("..")))
-        print(list_entries)
+        # print(list_entries)
 
         for entry in list_entries: 
             # convert unix time to readable format
@@ -56,8 +56,8 @@ def begin(stdscr: curses.window):
                 entry[-3] = datetime.fromtimestamp(entry[-3]).strftime('%y-%m-%d %H:%M')
             except:
                 pass
-        for l in list_entries:
-            print("\t" + str(l))
+        # for l in list_entries:
+        #     print("\t" + str(l))
         
         fman_data["items"] = list_entries
         fman_data["header"] = header
