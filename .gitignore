@@ -1,1 +1,35 @@
+aria2tui.toml
+data_stuff.py
+*.pyc
+oldcode.py
+.vscode
+./.vscode
+tmp/
+./list_picker/tmp/
+./scripts
+
+# Compile stuff
 __pycache__/
+src/listpick/__pycache__
+src/listpick/utils/__pycache__/
+src/listpick/ui/__pycache__/
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
