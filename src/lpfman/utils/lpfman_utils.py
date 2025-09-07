@@ -1,4 +1,5 @@
 import os 
+import stat
 from listpick.utils.utils import format_size
 from datetime import datetime
 import hashlib
@@ -104,7 +105,14 @@ def get_file_type(filename):
         print(f"The file '{filename}' does not exist.")
         return "unknown"
 
-# Example usage:
-filename = "example.txt"
-file_type = get_file_type(filename)
-print(f"The MIME type of {filename} is {file_type}")
+
+def get_file_permissions(filepath):
+    try:
+        # Get file status
+        file_stat = os.stat(filepath)
+        # Convert mode to symbolic representation (e.g., -rw-r--r--)
+        permissions = stat.filemode(file_stat.st_mode)
+        return permissions
+
+    except Exception as e:
+        return ""

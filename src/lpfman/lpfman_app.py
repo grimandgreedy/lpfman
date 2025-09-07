@@ -15,9 +15,11 @@ from listpick.ui.picker_colours import get_colours
 from listpick.utils.table_to_list_of_lists import *
 from listpick.utils.options_selectors import default_option_selector
 from listpick.ui.keys import menu_keys
-from file_info_pane import right_split_file_attributes
 from listpick.utils.generate_data_multithreaded import generate_picker_data, command_to_func
-from lpfman_utils import get_filetype, get_size, get_mtime
+
+from lpfman.utils.lpfman_utils import get_filetype, get_size, get_mtime
+from lpfman.utils.lpfman_utils import *
+from lpfman.pane.file_info_pane import right_split_file_attributes
 
 
 class FileManager:
@@ -115,6 +117,7 @@ class FileManager:
             self.UI.refresh_function = generate_data
             self.UI.get_data_startup = True
             self.UI.get_new_data = True
+            h, w = self.stdscr.getmaxyx()
 
             cwd = os.getcwd()
             cwd = cwd.replace("/home/" + os.getlogin(), "~")

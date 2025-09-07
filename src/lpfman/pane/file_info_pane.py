@@ -1,14 +1,16 @@
 import curses
-from listpick.pane.pane_utils import get_file_attributes
-from previewers import display_image_with_icat, clear_kitty_image, is_kitty_graphics_supported
-from ueberzug_pane import display_image, start_ueberzugpp, remove_image
 import os
 import signal
 import random
 import string
-from lpfman_utils import *
 import subprocess
 import shlex
+
+from listpick.pane.pane_utils import get_file_attributes
+
+from lpfman.utils.lpfman_utils import *
+from lpfman.preview.previewers import display_image_with_icat, clear_kitty_image, is_kitty_graphics_supported
+from lpfman.pane.ueberzug_pane import display_image, start_ueberzugpp, remove_image
 
 def right_split_file_attributes(stdscr, x, y, w, h, state, row, cell, data: list = [], test: bool = False):
     """
@@ -23,7 +25,8 @@ def right_split_file_attributes(stdscr, x, y, w, h, state, row, cell, data: list
 
     # Separator
     for j in range(h):
-        stdscr.addstr(j+y, x, ' ', curses.color_pair(state["colours_start"]+16))
+        # stdscr.addstr(j+y, x, ' ', curses.color_pair(state["colours_start"]+16))
+        stdscr.addstr(j+y, x, '│', curses.color_pair(state["colours_start"]+16) | curses.A_REVERSE)
 
     # Display pane count
     pane_count = len(state["right_panes"])
@@ -133,6 +136,23 @@ def right_split_file_attributes(stdscr, x, y, w, h, state, row, cell, data: list
     # else:
     #     if is_kitty_graphics_supported():
     #         clear_kitty_image()
+
+    elif len(attributes) == 3 and attributes[1].startswith("Filetype: text/"):
+        lines = []
+        with open(shlex.quote(cell), "r") as f:
+            try:
+                for _ in range(h):
+                    line = next(f).strip()
+                    lines.append(line)
+            except:
+                pass
+
+        for i in range(min(h-8, len(lines))):
+            stdscr.addstr(y+8+i, x+2, lines[i][:w-3])
+
+
+
+
 
 
     data[:] = [cell, displaying_image, proc]
