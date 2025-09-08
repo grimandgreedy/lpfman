@@ -11,6 +11,7 @@ from listpick.pane.pane_utils import get_file_attributes
 from lpfman.utils.lpfman_utils import *
 from lpfman.preview.previewers import display_image_with_icat, clear_kitty_image, is_kitty_graphics_supported
 from lpfman.pane.ueberzug_pane import display_image, start_ueberzugpp, remove_image
+from lpfman.preview.text_preview import preview_text
 
 def right_split_file_attributes(stdscr, x, y, w, h, state, row, cell, data: list = [], test: bool = False):
     """
@@ -19,9 +20,9 @@ def right_split_file_attributes(stdscr, x, y, w, h, state, row, cell, data: list
     if test: return True
 
     # Title
-    title = "File attributes"
-    if len(title) < w: title = f"{title:^{w}}"
-    stdscr.addstr(y, x,title[:w], curses.color_pair(state["colours_start"]+4) | curses.A_BOLD)
+    # title = "File attributes"
+    # if len(title) < w: title = f"{title:^{w}}"
+    # stdscr.addstr(y, x,title[:w], curses.color_pair(state["colours_start"]+4) | curses.A_BOLD)
 
     # Separator
     for j in range(h):
@@ -36,48 +37,75 @@ def right_split_file_attributes(stdscr, x, y, w, h, state, row, cell, data: list
         stdscr.addstr(y+h-1, x+w-len(s)-1, s, curses.color_pair(state["colours_start"]+20))
 
     if len(state["indexed_items"]) == 0:
-        data[:] = ["", False]
-        return []
+        data[:] = ["", False, None]
+        return None
 
     cell = state["indexed_items"][state["cursor_pos"]][1][0]
+
+
+    if os.path.isdir(cell):
+        fs = sorted(os.listdir(cell), key=lambda x: (x.startswith('.'), x))
+        for i, f in enumerate(fs):
+            if y+1+i >= h: break
+            isdir = os.path.isdir(f"{cell}/{f}")
+            color = curses.color_pair(2)
+            if isdir:
+                color = curses.color_pair(11)
+            try:
+                stdscr.addstr(y+1+i, x+4, f[:w-5], color)
+            except:
+                pass
+        data[:] = [cell, False, None]
+        return None
+
+
+
     # Filename/cursor cell value
-    stdscr.addstr(y+2, x+2, cell[:w-3])
+    stdscr.addstr(y+1, x+2, cell[:w-3])
 
 
-    attributes = get_file_attributes(cell)
-    for i, attr in enumerate(attributes):
-        stdscr.addstr(y+3+i, x+4, attr[:w-5])
 
+    # Horizontal separator
+    # stdscr.addstr(y+6, x+1, '─'*(w-1), curses.color_pair(state["colours_start"]+16) | curses.A_REVERSE)
 
     displaying_image = False
     proc = None
-    if len(attributes) == 3 and attributes[1].startswith("Filetype: image/"):
+    code_file_extensions = [".sh"]
+
+
+
+    # If we are on a different line and we are displaying an image then clear the image.
+    if cell != data[0] and data[1]:
+        if is_kitty_graphics_supported():
+            clear_kitty_image()
+
+
+    # Display file attributes
+    attributes = get_file_attributes(cell)
+    if len(attributes) != 3: return None
+    for i, attr in enumerate(attributes):
+        stdscr.addstr(y+2+i, x+4, attr[:w-5])
+
+
+
+
+    if attributes[1].startswith("Filetype: image/"):
         if is_kitty_graphics_supported():
             # display_image_with_icat(cell, clear=False)
             clear = False if len(data) and cell == data[0] else True
             display_image_with_icat(
                 cell,
                 x=x+3,
-                y=y+7,
+                y=y+6,
                 width=w-5,
-                height=h-8,
+                height=h-9,
                 clear=clear,
             )
             displaying_image = True
         else:
-            # display_image("/home/noah/Pictures/paintings/Botticelli_La_nascita_di_Venere.jpg", width=20)
-            #
-            # from term_image.image import from_file
-            #
-            # image = from_file(cell)
-            #
-            # image.width = w-5
-            # image.draw()
             if len(data) and data[0] != cell:
                 # if len(data) > 2 and data[2] != None:
                 #     os.system("notify-send hi")
-                #     # import pyperclip
-                #     # pyperclip.copy(data)
                 #     old_proc = data[2]
                 #     remove_image(old_proc, data[0])
                 #     old_proc.stdin.close()
@@ -90,26 +118,20 @@ def right_split_file_attributes(stdscr, x, y, w, h, state, row, cell, data: list
                     proc,
                     cell,
                     x=x+3,
-                    y=y+7,
+                    y=y+6,
                     width=w-5,
-                    height=h-8,
+                    height=h-7,
                 )
             displaying_image = True
 
-    elif len(attributes) == 3 and attributes[1].startswith("Filetype: video/"):
+    elif attributes[1].startswith("Filetype: video/"):
         full_path = os.path.realpath(cell)
         hash = generate_hash(full_path)
 
-        tmp_fname = f"{hash}_{w-5}x{h-8}.jpg"
+        tmp_fname = f"{hash}_{w-5}x{h-7}.jpg"
         tmp_full_path = f"/tmp/{tmp_fname}"
         if not os.path.exists(tmp_full_path):
             command = f"ffmpegthumbnailer -i {shlex.quote(cell)} -o {tmp_full_path} -s {720}"
-            # command = [
-            #     "ffmpegthumbnailer",
-            #     "-i", cell,
-            #     "-o", tmp_full_path,
-            #     "-s", "720",
-            # ]
             subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         if is_kitty_graphics_supported():
@@ -118,42 +140,80 @@ def right_split_file_attributes(stdscr, x, y, w, h, state, row, cell, data: list
             display_image_with_icat(
                 tmp_full_path,
                 x=x+3,
-                y=y+7,
+                y=y+6,
                 width=w-5,
-                height=h-8,
+                height=h-7,
                 clear=clear,
             )
             displaying_image = True
 
+    elif cell.endswith(".epub"):
+        full_path = os.path.realpath(cell)
+        hash = generate_hash(full_path)
 
+        tmp_fname = f"{hash}_{w-5}x{h-7}.jpg"
+        tmp_full_path = f"/tmp/{tmp_fname}"
+        if not os.path.exists(tmp_full_path):
+            command = f"gnome-epub-thumbnailer {shlex.quote(cell)} {tmp_full_path} -s {512}"
+            subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-    elif displaying_image:
         if is_kitty_graphics_supported():
-            clear_kitty_image()
-        elif len(data) > 2 and data[2] != None:
-            old_proc = data[2]
-            os.killpg(os.getpgid(old_proc.pid), signal.SIGTERM)
-    # else:
-    #     if is_kitty_graphics_supported():
-    #         clear_kitty_image()
 
-    elif len(attributes) == 3 and attributes[1].startswith("Filetype: text/"):
-        lines = []
-        with open(shlex.quote(cell), "r") as f:
-            try:
-                for _ in range(h):
-                    line = next(f).strip()
-                    lines.append(line)
-            except:
-                pass
+            clear = False if len(data) and cell == data[0] else True
+            display_image_with_icat(
+                tmp_full_path,
+                x=x+3,
+                y=y+6,
+                width=w-5,
+                height=h-7,
+                clear=clear,
+            )
+            displaying_image = True
 
-        for i in range(min(h-8, len(lines))):
-            stdscr.addstr(y+8+i, x+2, lines[i][:w-3])
+    elif cell.endswith(".mobi"):
+        full_path = os.path.realpath(cell)
+        hash = generate_hash(full_path)
+
+        tmp_fname = f"{hash}_{w-5}x{h-7}.jpg"
+        tmp_full_path = f"/tmp/{tmp_fname}"
+        if not os.path.exists(tmp_full_path):
+            command = f"gnome-mobi-thumbnailer {shlex.quote(cell)} {tmp_full_path} -s {512}"
+            subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+        if is_kitty_graphics_supported():
+
+            clear = False if len(data) and cell == data[0] else True
+            display_image_with_icat(
+                tmp_full_path,
+                x=x+3,
+                y=y+6,
+                width=w-5,
+                height=h-7,
+                clear=clear,
+            )
+            displaying_image = True
+
+    elif cell.endswith(".torrent"):
+        command = f"transmission-show {cell}"
+        proc = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+        lines = proc.stdout.decode("utf-8").strip().split("\n")
+        for i in range(min(len(lines), h-7)):
+            stdscr.addstr(y+6+i, x+4, lines[i][:w-5])
 
 
+    elif (attributes[1].startswith("Filetype: text/") or cell[-3:] in code_file_extensions):
+        preview_text(
+            stdscr,
+            filepath=shlex.quote(cell),
+            code_x=x+3,
+            code_y=y+6,
+            code_w=w-3,
+            code_h=h-7,
+            show_line_numbers=False,
+            indent_guides=True,
+            theme="dark"
 
-
-
+        )
 
     data[:] = [cell, displaying_image, proc]
 

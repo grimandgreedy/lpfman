@@ -1,4 +1,12 @@
 # CHANGELOG.md
+## [0.1.0.1] 2025-09-08
+ - Added previews for:
+  - Video thumbnail previews with icat
+  - Epub, mobi
+  - Torrent files
+  - Code files with syntax highlighting
+  - Directories
+ - Added colour highlights to distingiush directories and files.
 
 ## [0.1.0.0] 2025-09-07
  - Created FileManager class.

@@ -100,6 +100,14 @@ class FileManager:
                     "color" : 11,
                 }
                 highlights.append(highlight)
+            for i in range(len(visible_files)):
+                highlight = {
+                    "row" : i+len(visible_dirs)+1, 
+                    "field" : 0,
+                    "match" : ".*",
+                    "color" : 9,
+                }
+                highlights.append(highlight)
             self.UI.highlights = highlights
 
 
