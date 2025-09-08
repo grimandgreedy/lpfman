@@ -1,1 +1,5 @@
  - Sort order when changing directories.
+ - Default sort order of columns
+ - .. should always be sorted to the top...
+   - Custom sort?
+ - image remains on screen after closing pane

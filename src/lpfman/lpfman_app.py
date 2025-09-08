@@ -35,13 +35,21 @@ class FileManager:
         header = ["Fname", "type", "st_mode", "st_ino", "st_dev", "st_nlink", "st_uid", "st_gid", "st_size", "st_atime", "st_mtime", "st_ctime"]
 
         self.column_names = ["Filename", "Size", "Filetype", "Modified Time"]
-
-        # commands_list = [
-        #     "du -hs {} | awk '{{print $1 }}'",
-        # ]
-        # column_functions = [command_to_func(command) for command in commands_list]
+        self.column_names = ["Filename", "Size", "Filetype", "Modified Time"]
 
         self.column_functions = [get_size, get_filetype, get_mtime]
+
+        commands_list = [
+          """[[ -f {} ]] && mediainfo --Inform="Audio;%Duration/String%" {}""",
+          """[[ -f {} ]] && mediainfo --Inform="Video;%Width%" {}""",
+          """[[ -f {} ]] && mediainfo --Inform="Video;%Height%" {}""",
+          """[[ -f {} ]] && mediainfo --Inform="Video;%BitRate/String%" {}""",
+          """[[ -f {} ]] && mediainfo --Inform="Video;%CodecID%" {}""",
+          """[[ -f {} ]] && mediainfo --Inform="Video;%BitDepth%" {}""",
+        ]
+        self.column_functions += [command_to_func(command) for command in commands_list]
+
+        self.column_names += ["Duration", "Width", "Height", "Bit Rate", "Codec", "BitDepth"]
 
         self.fman_data = {
             "colour_theme_number": 3,
@@ -49,6 +57,9 @@ class FileManager:
             "split_right": True,
             "header": self.column_names,
             "cell_cursor": False,
+            "title": " ",
+            "separator": "  ",
+            "number_columns": False,
         }
 
         self.fman_data["items"] = [[]]

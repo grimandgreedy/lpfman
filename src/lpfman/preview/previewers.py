@@ -4,6 +4,9 @@ import os
 import shutil
 import subprocess
 import time
+from mutagen import File
+from mutagen.id3 import ID3, APIC
+from mutagen.flac import Picture
 
 def display_image_with_icat(
     image_path: str,
@@ -108,3 +111,53 @@ def is_kitty_graphics_supported() -> bool:
     except Exception:
         return False
 
+
+def extract_album_art(audio_path, output_image_path="/tmp/albart.png"):
+    """
+    Extract album art using mutagen (MP3, FLAC, M4A).
+    Returns:
+        - Path to saved image if saved,
+        - Bytes if not saved,
+        - None if not found.
+    """
+    audio = File(audio_path)
+    if audio is None:
+        print("Unsupported or invalid audio file.")
+        return None
+
+    image_data = None
+    image_ext = "jpg"  # default
+
+    # MP3
+    if isinstance(audio.tags, ID3):
+        # Find any APIC (Attached Picture) tag
+        for key in audio.tags.keys():
+            if key.startswith("APIC"):
+                apic = audio.tags.getall(key)[0]
+                image_data = apic.data
+                image_ext = apic.mime.split("/")[-1]
+                break
+
+    # FLAC
+    elif hasattr(audio, "pictures") and audio.pictures:
+        pic = audio.pictures[0]
+        image_data = pic.data
+        image_ext = pic.mime.split("/")[-1]
+
+    # MP4/M4A
+    elif audio.mime and "mp4" in audio.mime[0]:
+        covers = audio.tags.get("covr")
+        if covers:
+            cover = covers[0]
+            image_data = cover if isinstance(cover, bytes) else cover.data
+            # 13 = jpg, 14 = png
+            image_ext = "jpg" if cover.imageformat == 13 else "png"  
+    if image_data:
+        if not output_image_path:
+            base = os.path.splitext(os.path.basename(audio_path))[0]
+            output_image_path = f"{base}_cover.{image_ext}"
+        with open(output_image_path, "wb") as f:
+            f.write(image_data)
+        return output_image_path
+
+    return None

@@ -12,7 +12,7 @@ from pdf2image import convert_from_path
 from listpick.pane.pane_utils import get_file_attributes
 
 from lpfman.utils.lpfman_utils import *
-from lpfman.preview.previewers import display_image_with_icat, clear_kitty_image, is_kitty_graphics_supported
+from lpfman.preview.previewers import display_image_with_icat, clear_kitty_image, extract_album_art, is_kitty_graphics_supported
 from lpfman.pane.ueberzug_pane import display_image, start_ueberzugpp, remove_image
 from lpfman.preview.text_preview import preview_text
 
@@ -73,7 +73,7 @@ def right_split_file_attributes(stdscr, x, y, w, h, state, row, cell, data: list
         for i, f in enumerate(fs):
             if y+1+i >= h: break
             isdir = os.path.isdir(f"{cell}/{f}")
-            color = curses.color_pair(2)
+            color = curses.color_pair(9)
             if isdir:
                 color = curses.color_pair(11)
             try:
@@ -108,32 +108,35 @@ def right_split_file_attributes(stdscr, x, y, w, h, state, row, cell, data: list
 
     def show_image(path):
         proc = None
-        if is_kitty_graphics_supported() and data[0] != cell:
-            # display_image_with_icat(cell, clear=False)
-            clear = False if len(data) and cell == data[0] else True
-            proc = display_image_with_icat(
-                path,
-                x=x+3,
-                y=y+6,
-                width=w-5,
-                height=h-9,
-                clear=clear,
-            )
-            displaying_image = True
-        else:
-            if len(data) and data[0] != cell:
-                proc = start_ueberzugpp()
-                display_image(
-                    proc,
+        try:
+            if is_kitty_graphics_supported() and data[0] != cell:
+                # display_image_with_icat(cell, clear=False)
+                clear = False if len(data) and cell == data[0] else True
+                proc = display_image_with_icat(
                     path,
                     x=x+3,
                     y=y+6,
                     width=w-5,
-                    height=h-7,
+                    height=h-9,
+                    clear=clear,
                 )
-            # If we are displaying an image and the cursor is on the same cell then make sure we keep the process
-            elif data[0] == cell and data[1]:
-                proc = data[2]
+                displaying_image = True
+            else:
+                if len(data) and data[0] != cell:
+                    proc = start_ueberzugpp()
+                    display_image(
+                        proc,
+                        path,
+                        x=x+3,
+                        y=y+6,
+                        width=w-5,
+                        height=h-7,
+                    )
+                # If we are displaying an image and the cursor is on the same cell then make sure we keep the process
+                elif data[0] == cell and data[1]:
+                    proc = data[2]
+        except:
+            pass
         return proc
 
 
@@ -151,6 +154,23 @@ def right_split_file_attributes(stdscr, x, y, w, h, state, row, cell, data: list
         if not os.path.exists(tmp_full_path):
             command = f"ffmpegthumbnailer -i {shlex.quote(cell)} -o {tmp_full_path} -s {720}"
             subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+        proc = show_image(tmp_full_path)
+        displaying_image = True
+
+    elif attributes[1].startswith("Filetype: audio/"):
+        full_path = os.path.realpath(cell)
+        hash = generate_hash(full_path)
+
+        tmp_fname = f"{hash}_{w-5}x{h-7}.jpg"
+        tmp_full_path = f"/tmp/{tmp_fname}"
+        if not os.path.exists(tmp_full_path):
+            try:
+                extract_album_art(cell, True, tmp_full_path)
+            except:
+                return [cell, False, None]
+            # command = f"ffmpegthumbnailer -i {shlex.quote(cell)} -o {tmp_full_path} -s {720}"
+            # subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         proc = show_image(tmp_full_path)
         displaying_image = True
@@ -235,7 +255,6 @@ def right_split_file_attributes(stdscr, x, y, w, h, state, row, cell, data: list
             show_line_numbers=False,
             indent_guides=True,
             theme="dark"
-
         )
 
     data[:] = [cell, displaying_image, proc]

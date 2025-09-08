@@ -43,6 +43,9 @@ setuptools.setup(
     install_requires = [
         "toml",
         "pdf2image",
-        "listpick >= 0.1.16.1",
+        "listpick >= 0.1.16.4",
+        "mutagen",
+        "Pygments",
+        "wcwidth",
     ],
 )

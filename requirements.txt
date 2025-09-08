@@ -1,0 +1,7 @@
+listpick==0.1.16.3
+listpick.egg==info
+mutagen==1.47.0
+pdf2image==1.17.0
+Pygments==2.19.2
+setuptools==80.9.0
+wcwidth==0.2.13
