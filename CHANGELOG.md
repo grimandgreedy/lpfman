@@ -1,7 +1,16 @@
 # CHANGELOG.md
 
-## [0.1.0.2] 2025-09-08
+## [0.1.0.3] 2025-09-09
+ - Feature added: Previewing with ueberzugpp is now possible.
+ - Bug fixes:
+   - Clearing a kitty image no longer causes a stray cursor flash at the top left of the image.
+
+## [0.1.0.2] 2025-09-09
  - Prevent special characters overflowing code preview by calculating char widht using wcwidth.
+ - Added previews for:
+  - PDFs
+  - ZIPs
+  - Tarballs
 
 ## [0.1.0.1] 2025-09-08
  - Added previews for:

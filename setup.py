@@ -42,6 +42,7 @@ setuptools.setup(
     },
     install_requires = [
         "toml",
+        "pdf2image",
         "listpick >= 0.1.16.1",
     ],
 )

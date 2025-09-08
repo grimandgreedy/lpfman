@@ -2,11 +2,11 @@ import os
 import json
 import time
 import subprocess
+from lpfman.utils.lpfman_utils import *
 
 UEBERZUGPP_CMD = ["ueberzugpp", "layer", "--parser", "json"]
 
 def start_ueberzugpp():
-    # print(f"[DEBUG] Starting ueberzugpp...")
     proc = subprocess.Popen(
         UEBERZUGPP_CMD,
         stdin=subprocess.PIPE,
@@ -14,23 +14,20 @@ def start_ueberzugpp():
         stderr=subprocess.PIPE,  # Keep stderr open to inspect later
         text=True  # So we can write strings instead of bytes
     )
-    # print(f"[DEBUG] ueberzugpp started with PID {proc.pid}")
     return proc
 
 def send_command(proc, command: dict):
     try:
-        # print(f"[DEBUG] Sending command: {command}")
         proc.stdin.write(json.dumps(command) + '\n')
         proc.stdin.flush()
-        # print(f"[DEBUG] Command sent successfully.")
     except Exception as e:
-        # print(f"[ERROR] Failed to send command: {e}")
         pass
 
 def display_image(proc, path, x=0, y=0, width=40, height=20):
+    id = generate_hash(path)
     send_command(proc, {
         "action": "add",
-        "identifier": path,
+        "identifier": id,
         "x": x,
         "y": y,
         "width": width,
@@ -42,9 +39,10 @@ def display_image(proc, path, x=0, y=0, width=40, height=20):
     })
 
 def remove_image(proc, identifier="demo"):
+    id = generate_hash(identifier)
     send_command(proc, {
         "action": "remove",
-        "identifier": identifier,
+        "identifier": id,
     })
 
 if __name__ == "__main__":

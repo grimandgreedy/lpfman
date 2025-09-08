@@ -3,6 +3,7 @@ import os
 import os
 import shutil
 import subprocess
+import time
 
 def display_image_with_icat(
     image_path: str,
@@ -11,7 +12,8 @@ def display_image_with_icat(
     x: int = 10,
     y: int = 5,
     align: str = "center",
-    clear: bool = True
+    clear: bool = True,
+    background_colour: str = "white",
 ):
     """
     Display an image in the terminal using Kitty's icat protocol.
@@ -33,7 +35,8 @@ def display_image_with_icat(
         "kitty", "+kitten", "icat",
         "--transfer-mode", "file",
         "--place", f"{width}x{height}@{x}x{y}",
-        "--align", align
+        "--align", align,
+        "--background", background_colour,
     ]
 
     if clear:
@@ -42,10 +45,14 @@ def display_image_with_icat(
     cmd.append(image_path)
 
     try:
-        subprocess.run(cmd, check=True, stderr=subprocess.PIPE)
+        proc = subprocess.Popen(cmd, stderr=subprocess.PIPE)
+        time.sleep(0.01)
+        return proc
+
     except subprocess.CalledProcessError as e:
         pass
         # print(f"[Error] Failed to display image: {e}")
+
 
 def clear_kitty_image():
     """
@@ -55,7 +62,8 @@ def clear_kitty_image():
         subprocess.run(
             ["kitty", "+kitten", "icat", "--clear"],
             check=True,
-            stderr=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            stdout=subprocess.DEVNULL,
         )
     except subprocess.CalledProcessError as e:
         pass
