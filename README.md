@@ -5,7 +5,7 @@
 lpfman is a terminal-based file manager which supports the display of detailed file attributes--a feature sorely lacking in all other TUI-FMs. Column data is generated asynchronously using multiple threads with visible rows being prioritised in the task queue. Many column presets are available but you can also provide your own column generation functions in your columns.toml config file.
 
 <div align="center"> <img src="assets/lpfman_image_preview.png" alt="picker" width="70%"> </div>
-<div align="center"> <img src="assets/lpfman_01.png" alt="picker" width="100%"> </div>
+<div align="center"> <img src="assets/lpfman_02.png" alt="picker" width="100%"> </div>
 
 # Quickstart
 
