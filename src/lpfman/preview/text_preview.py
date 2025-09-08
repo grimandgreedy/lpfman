@@ -168,13 +168,18 @@ def display_code(
                     pass
                 x += line_num_width
 
-
+            # Use wcwidth to prevent special chars overflowing screen width
             col = 0
             for ch, ttype in line:
-                if x + col >= max_x or y >= max_y:
+                width = wcwidth(ch)
+                if width < 0:
+                    width = 0  # unprintable
+
+                if x + col + width > max_x or y >= max_y:
                     break
+
                 try:
-                    if indent_guides and ch == ' ' and col % 4 == 0:
+                    if indent_guides and ch == ' ' and (col % 4 == 0):
                         guide = token_to_color.get("indent_guide", curses.color_pair(0))
                         stdscr.addstr(y, x + col, '│', guide)
                     else:
@@ -182,7 +187,8 @@ def display_code(
                         stdscr.addstr(y, x + col, ch, color)
                 except curses.error:
                     pass
-                col += 1
+
+                col += width
 
         stdscr.refresh()
 

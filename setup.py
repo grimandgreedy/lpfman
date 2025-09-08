@@ -16,7 +16,7 @@ with open("README.md", "r", encoding = "utf-8") as fh:
 
 setuptools.setup(
     name = "lpfman",
-    version = "0.1.0.1",
+    version = "0.1.0.3",
     author = "Grim",
     author_email = "grimandgreedy@protonmail.com",
     description = "lpfman is a TUI file manager with extensive column support.",

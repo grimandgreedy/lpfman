@@ -1,4 +1,8 @@
 # CHANGELOG.md
+
+## [0.1.0.2] 2025-09-08
+ - Prevent special characters overflowing code preview by calculating char widht using wcwidth.
+
 ## [0.1.0.1] 2025-09-08
  - Added previews for:
   - Video thumbnail previews with icat
