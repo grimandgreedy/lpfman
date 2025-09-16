@@ -93,7 +93,7 @@ def right_split_file_attributes(stdscr, x, y, w, h, state, row, cell, data: list
 
     displaying_image = False
     proc = None
-    code_file_extensions = [".sh", ".srt"]
+    code_file_extensions = [".sh", ".srt", ".rs", ".toml"]
 
 
 
@@ -150,7 +150,8 @@ def right_split_file_attributes(stdscr, x, y, w, h, state, row, cell, data: list
         hash = generate_hash(full_path)
 
         tmp_fname = f"{hash}_{w-5}x{h-7}.jpg"
-        tmp_full_path = f"/tmp/{tmp_fname}"
+        tmp_full_path = f"/tmp/lpfman/{tmp_fname}"
+        os.makedirs(os.path.dirname(tmp_full_path), exist_ok=True)
         if not os.path.exists(tmp_full_path):
             command = f"ffmpegthumbnailer -i {shlex.quote(cell)} -o {tmp_full_path} -s {720}"
             subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -163,7 +164,8 @@ def right_split_file_attributes(stdscr, x, y, w, h, state, row, cell, data: list
         hash = generate_hash(full_path)
 
         tmp_fname = f"{hash}_{w-5}x{h-7}.jpg"
-        tmp_full_path = f"/tmp/{tmp_fname}"
+        tmp_full_path = f"/tmp/lpfman/{tmp_fname}"
+        os.makedirs(os.path.dirname(tmp_full_path), exist_ok=True)
         if not os.path.exists(tmp_full_path):
             try:
                 extract_album_art(cell, True, tmp_full_path)
@@ -180,7 +182,8 @@ def right_split_file_attributes(stdscr, x, y, w, h, state, row, cell, data: list
         hash = generate_hash(full_path)
 
         tmp_fname = f"{hash}_{w-5}x{h-7}.jpg"
-        tmp_full_path = f"/tmp/{tmp_fname}"
+        tmp_full_path = f"/tmp/lpfman/{tmp_fname}"
+        os.makedirs(os.path.dirname(tmp_full_path), exist_ok=True)
         if not os.path.exists(tmp_full_path):
             command = f"gnome-epub-thumbnailer {shlex.quote(cell)} {tmp_full_path} -s {512}"
             subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -193,7 +196,8 @@ def right_split_file_attributes(stdscr, x, y, w, h, state, row, cell, data: list
         hash = generate_hash(full_path)
 
         tmp_fname = f"{hash}_{w-5}x{h-7}.jpg"
-        tmp_full_path = f"/tmp/{tmp_fname}"
+        tmp_full_path = f"/tmp/lpfman/{tmp_fname}"
+        os.makedirs(os.path.dirname(tmp_full_path), exist_ok=True)
         if not os.path.exists(tmp_full_path):
             command = f"gnome-mobi-thumbnailer {shlex.quote(cell)} {tmp_full_path} -s {512}"
             subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -220,7 +224,8 @@ def right_split_file_attributes(stdscr, x, y, w, h, state, row, cell, data: list
         hash = generate_hash(full_path)
 
         tmp_fname = f"{hash}.png"
-        tmp_full_path = f"/tmp/{tmp_fname}"
+        tmp_full_path = f"/tmp/lpfman/{tmp_fname}"
+        os.makedirs(os.path.dirname(tmp_full_path), exist_ok=True)
         if not os.path.exists(tmp_full_path):
             tmp_fname = f"{hash}.png"
             tmp_full_path = f"/tmp/{tmp_fname}"
@@ -243,8 +248,7 @@ def right_split_file_attributes(stdscr, x, y, w, h, state, row, cell, data: list
         for i in range(min(len(lines), h-7)):
             stdscr.addstr(y+6+i, x+4, lines[i][:w-5])
 
-
-    elif attributes[1].startswith("Filetype: text/") or any(cell.endswith(s) for s in code_file_extensions):
+    elif attributes[1].startswith("Filetype: text/") or cell.endswith(tuple(code_file_extensions)):
         preview_text(
             stdscr,
             filepath=shlex.quote(cell),

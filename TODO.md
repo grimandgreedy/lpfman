@@ -3,3 +3,5 @@
  - .. should always be sorted to the top...
    - Custom sort?
  - image remains on screen after closing pane
+ - Delete file and refresh... file is still there. The refresh should also refresh the files.
+ - Remember selected directory of previous location

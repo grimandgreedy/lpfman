@@ -6,9 +6,6 @@ import curses
 from datetime import datetime
 import shlex
 
-
-# os.chdir(os.path.dirname(os.path.realpath(__file__)))
-
 from listpick.utils.utils import *
 from listpick.listpick_app import Picker, start_curses, close_curses
 from listpick.ui.picker_colours import get_colours
@@ -20,6 +17,7 @@ from listpick.utils.generate_data_multithreaded import generate_picker_data, com
 from lpfman.utils.lpfman_utils import get_filetype, get_size, get_mtime
 from lpfman.utils.lpfman_utils import *
 from lpfman.pane.file_info_pane import right_split_file_attributes
+from lpfman.ui.keys import lpfman_keys
 
 
 class FileManager:
@@ -60,6 +58,8 @@ class FileManager:
             "title": " ",
             "separator": "  ",
             "number_columns": False,
+            "keys_dict": lpfman_keys,
+            "id_column": 0,
         }
 
         self.fman_data["items"] = [[]]
@@ -79,6 +79,8 @@ class FileManager:
         self.UI = Picker(self.stdscr, **self.fman_data)
 
     def run(self):
+        went_up = False
+        past_dir = None
         while True:
             ## Get files and folders in directory
             sc = os.scandir(".")
@@ -142,15 +144,31 @@ class FileManager:
             cwd = cwd.replace("/home/" + os.getlogin(), "~")
             self.UI.footer_string = cwd
 
+            if went_up:
+                try:
+                    self.UI.cursor_pos = filenames.index(past_dir)
+                except:
+                    pass
+                went_up = False
+
             selected_entries, opts, fman_data = self.UI.run()
 
-            if not selected_entries: break
+            if not selected_entries:
+                if self.UI.last_key == ord('h'):
+                    went_up = True
+                    past_dir = os.getcwd().split("/")[-1]
+                    os.chdir("..")
+                    continue
+                else:
+                    break
             list_entries = fman_data["items"]
 
             # print(selected_entries)
             if len(selected_entries) == 1:
                 target = self.UI.items[selected_entries[0]][0]
                 if target == "..":
+                    went_up = True
+                    past_dir = os.getcwd().split("/")[-1]
                     os.chdir("..")
                     continue
                 elif os.path.isdir(target):
