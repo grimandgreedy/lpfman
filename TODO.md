@@ -5,3 +5,5 @@
  - image remains on screen after closing pane
  - Delete file and refresh... file is still there. The refresh should also refresh the files.
  - Remember selected directory of previous location
+ - Cancel filter when changing directories
+ - search/filter history

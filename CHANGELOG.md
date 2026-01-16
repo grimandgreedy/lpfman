@@ -1,5 +1,8 @@
 # CHANGELOG.md
 
+## [0.1.0.4] 2026-01-16
+ - Fixed data generation issue--caused by list replacement while padding the sublists which created new lists and so the background workers weren't able to populate the cells as their reference lists had actually been replaced. 
+
 ## [0.1.0.3] 2025-09-09
  - Feature added: Previewing with ueberzugpp is now possible.
  - Bug fixes:

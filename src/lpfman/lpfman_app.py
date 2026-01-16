@@ -173,8 +173,7 @@ class FileManager:
                 went_up = False
 
             self.UI.load_input_history("~/.config/lpfman/cmdhist.json")
-            import time
-            time.sleep(0.1)
+
             selected_entries, opts, fman_data = self.UI.run()
             self.UI.save_input_history("~/.config/lpfman/cmdhist.json")
 
