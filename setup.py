@@ -16,7 +16,7 @@ with open("README.md", "r", encoding = "utf-8") as fh:
 
 setuptools.setup(
     name = "lpfman",
-    version = "0.1.0.3",
+    version = "0.1.0.4",
     author = "Grim",
     author_email = "grimandgreedy@protonmail.com",
     description = "lpfman is a TUI file manager with extensive column support.",
@@ -43,7 +43,7 @@ setuptools.setup(
     install_requires = [
         "toml",
         "pdf2image",
-        "listpick >= 0.1.16.4",
+        "listpick >= 0.1.17.2",
         "mutagen",
         "Pygments",
         "wcwidth",
