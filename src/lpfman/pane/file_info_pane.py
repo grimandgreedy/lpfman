@@ -77,7 +77,7 @@ def right_split_file_attributes(stdscr, x, y, w, h, state, row, cell, data: list
             if isdir:
                 color = curses.color_pair(11)
             try:
-                stdscr.addstr(y+1+i, x+4, f[:w-5], color)
+                stdscr.addstr(y+1+i, x+3, f[:w-5], color)
             except:
                 pass
         data[:] = [cell, False, None]

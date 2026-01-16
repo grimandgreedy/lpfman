@@ -17,6 +17,7 @@ from listpick.utils.generate_data_multithreaded import generate_picker_data, com
 from lpfman.utils.lpfman_utils import get_filetype, get_size, get_mtime
 from lpfman.utils.lpfman_utils import *
 from lpfman.pane.file_info_pane import right_split_file_attributes
+from lpfman.pane.parent_dir_pane import parent_dir_pane
 from lpfman.ui.keys import lpfman_keys
 
 
@@ -38,12 +39,12 @@ class FileManager:
         self.column_functions = [get_size, get_filetype, get_mtime]
 
         commands_list = [
-          """[[ -f {} ]] && mediainfo --Inform="Audio;%Duration/String%" {}""",
-          """[[ -f {} ]] && mediainfo --Inform="Video;%Width%" {}""",
-          """[[ -f {} ]] && mediainfo --Inform="Video;%Height%" {}""",
-          """[[ -f {} ]] && mediainfo --Inform="Video;%BitRate/String%" {}""",
-          """[[ -f {} ]] && mediainfo --Inform="Video;%CodecID%" {}""",
-          """[[ -f {} ]] && mediainfo --Inform="Video;%BitDepth%" {}""",
+          """[[ -f {} ]] && file --mime-type "$filename" | grep -qE 'audio/|video/' && mediainfo --Inform="Audio;%Duration/String%" {}""",
+          """[[ -f {} ]] && file --mime-type "$filename" | grep -qE 'audio/|video/' && mediainfo --Inform="Video;%Width%" {}""",
+          """[[ -f {} ]] && file --mime-type "$filename" | grep -qE 'audio/|video/' && mediainfo --Inform="Video;%Height%" {}""",
+          """[[ -f {} ]] && file --mime-type "$filename" | grep -qE 'audio/|video/' && mediainfo --Inform="Video;%BitRate/String%" {}""",
+          """[[ -f {} ]] && file --mime-type "$filename" | grep -qE 'audio/|video/' && mediainfo --Inform="Video;%CodecID%" {}""",
+          """[[ -f {} ]] && file --mime-type "$filename" | grep -qE 'audio/|video/' && mediainfo --Inform="Video;%BitDepth%" {}""",
         ]
         self.column_functions += [command_to_func(command) for command in commands_list]
 
@@ -56,7 +57,10 @@ class FileManager:
             "header": self.column_names,
             "cell_cursor": False,
             "title": " ",
-            "separator": "  ",
+            "separator": "    ",
+            # "header_separator" : " ▐",
+            "header_separator" : "   │",
+            "header_separator_before_selected_column": "   ▐",
             "number_columns": False,
             "keys_dict": lpfman_keys,
             "id_column": 0,
@@ -67,7 +71,7 @@ class FileManager:
         self.fman_data["right_panes"] = [
             # File attribures
             {
-                "proportion": 2/3,
+                "proportion": 1/3,
                 "auto_refresh": False,
                 "get_data": lambda data, state: [],
                 "display": right_split_file_attributes,
@@ -75,8 +79,23 @@ class FileManager:
                 "refresh_time": 1.0,
             },
         ]
+        self.fman_data["left_panes"] = [
+            # File attribures
+            {
+                "proportion": 1/8,
+                "auto_refresh": False,
+                "get_data": lambda data, state: [],
+                "display": parent_dir_pane,
+                "data": ["Files", [str(x) for x in range(100)]],
+                "refresh_time": 1.0,
+            },
+        ]
+        self.fman_data["split_left"] = True
+
 
         self.UI = Picker(self.stdscr, **self.fman_data)
+
+
 
     def run(self):
         went_up = False
@@ -103,6 +122,7 @@ class FileManager:
 
 
             filenames = [".."] + visible_dirs + visible_files
+            filenames = visible_dirs + visible_files
 
             highlights = [ ]
             for i in range(len(visible_dirs)+1):
@@ -124,7 +144,7 @@ class FileManager:
             self.UI.highlights = highlights
 
 
-            def generate_data(items, header, visible_rows_indices, getting_data):
+            def generate_data(items, header, visible_rows_indices, getting_data, state):
                 generate_picker_data(
                     filenames,
                     self.column_functions,
@@ -133,6 +153,7 @@ class FileManager:
                     header,
                     visible_rows_indices,
                     getting_data,
+                    state,
                 )
 
             self.UI.refresh_function = generate_data
@@ -144,14 +165,18 @@ class FileManager:
             cwd = cwd.replace("/home/" + os.getlogin(), "~")
             self.UI.footer_string = cwd
 
+            self.UI.filter_query = ""
+
             if went_up:
-                try:
+                if past_dir in filenames:
                     self.UI.cursor_pos = filenames.index(past_dir)
-                except:
-                    pass
                 went_up = False
 
+            self.UI.load_input_history("~/.config/lpfman/cmdhist.json")
+            import time
+            time.sleep(0.1)
             selected_entries, opts, fman_data = self.UI.run()
+            self.UI.save_input_history("~/.config/lpfman/cmdhist.json")
 
             if not selected_entries:
                 if self.UI.last_key == ord('h'):
