@@ -16,6 +16,7 @@ from listpick.utils.generate_data_multithreaded import generate_picker_data, com
 
 from lpfman.utils.lpfman_utils import get_filetype, get_size, get_mtime
 from lpfman.utils.lpfman_utils import *
+from lpfman.utils.file_utils import openFiles
 from lpfman.pane.file_info_pane import right_split_file_attributes
 from lpfman.pane.parent_dir_pane import parent_dir_pane
 from lpfman.ui.keys import lpfman_keys
