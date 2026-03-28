@@ -202,6 +202,8 @@ class FileManager:
                 # Clamp cursor position
                 if self.UI.cursor_pos >= len(self.UI.items):
                     self.UI.cursor_pos = max(0, len(self.UI.items) - 1)
+                # Rebuild indexed_items and selections from the mutated items list
+                self.UI.initialise_variables()
 
             self.UI.macros = [{
                 "keys": [curses.KEY_DC, 127],
