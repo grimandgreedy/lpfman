@@ -186,10 +186,13 @@ class FileManager:
                 for i in sorted(selected, reverse=True):
                     if i < len(self.UI.items):
                         to_delete.append(os.path.abspath(self.UI.items[i][0]))
-                # Trash each file (gio trash, no confirmation prompt)
+                # Trash each file (no confirmation prompt)
                 for abs_path in to_delete:
                     try:
-                        subprocess.run(["gio", "trash", abs_path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                        if sys.platform == "darwin":
+                            subprocess.run(["osascript", "-e", f'tell app "Finder" to delete POSIX file "{abs_path}"'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                        else:
+                            subprocess.run(["gio", "trash", abs_path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                     except Exception:
                         pass
                 # Remove items in-place in reverse order to preserve indices
@@ -201,7 +204,7 @@ class FileManager:
                     self.UI.cursor_pos = max(0, len(self.UI.items) - 1)
 
             self.UI.macros = [{
-                "keys": [curses.KEY_DC],
+                "keys": [curses.KEY_DC, 127],
                 "description": "Move selected file(s) to trash.",
                 "function": delete_files_macro,
             }]

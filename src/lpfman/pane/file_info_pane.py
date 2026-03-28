@@ -14,7 +14,7 @@ from listpick.pane.pane_utils import get_file_attributes
 from lpfman.utils.lpfman_utils import *
 from lpfman.preview.previewers import extract_album_art
 from lpfman.pane.ueberzug_pane import display_image, start_ueberzugpp, remove_image
-from ..preview.text_previewer import preview_text
+from lpfman.preview.text_previewer import preview_text
 from lpfman.preview._image_backend import clear_image, ImagePreviewState, show_image as backend_show_image
 
 def right_split_file_attributes(stdscr, x, y, w, h, state, row, cell, data: list = [], test: bool = False):
