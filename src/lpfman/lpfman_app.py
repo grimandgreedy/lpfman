@@ -3,6 +3,7 @@
 import os
 import sys
 import curses
+import subprocess
 from datetime import datetime
 import shlex
 
@@ -174,6 +175,36 @@ class FileManager:
                 went_up = False
 
             self.UI.load_input_history("~/.config/lpfman/cmdhist.json")
+
+            def delete_files_macro():
+                # Get selected indices — use multi-select if available, otherwise current cursor
+                selected = get_selected_indices(self.UI.selections)
+                if not selected:
+                    selected = [self.UI.cursor_pos]
+                # Collect absolute paths before mutating the list
+                to_delete = []
+                for i in sorted(selected, reverse=True):
+                    if i < len(self.UI.items):
+                        to_delete.append(os.path.abspath(self.UI.items[i][0]))
+                # Trash each file (gio trash, no confirmation prompt)
+                for abs_path in to_delete:
+                    try:
+                        subprocess.run(["gio", "trash", abs_path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                    except Exception:
+                        pass
+                # Remove items in-place in reverse order to preserve indices
+                for i in sorted(selected, reverse=True):
+                    if i < len(self.UI.items):
+                        del self.UI.items[i]
+                # Clamp cursor position
+                if self.UI.cursor_pos >= len(self.UI.items):
+                    self.UI.cursor_pos = max(0, len(self.UI.items) - 1)
+
+            self.UI.macros = [{
+                "keys": [curses.KEY_DC],
+                "description": "Move selected file(s) to trash.",
+                "function": delete_files_macro,
+            }]
 
             selected_entries, opts, fman_data = self.UI.run()
             self.UI.save_input_history("~/.config/lpfman/cmdhist.json")
