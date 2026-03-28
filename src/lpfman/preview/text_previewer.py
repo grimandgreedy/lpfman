@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import Optional
-from curses_syntax_highlighting import preview_text
-from lpfman.preview.base import Previewer, PreviewState
+from curses_syntax_highlighting import preview_text  # type: ignore[import-untyped]
+from .base import PreviewState
 
 
 # Extensions treated as code/text regardless of MIME type, matching the set
@@ -40,7 +40,7 @@ class TextPreviewerImpl:
         y: int,
         w: int,
         h: int,
-        prev_state: Optional[PreviewState],
+        _prev_state: Optional[PreviewState],
     ) -> PreviewState:
         """Render syntax-highlighted text into the terminal region.
 

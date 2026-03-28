@@ -1,8 +1,8 @@
 from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Optional
-from lpfman.preview.base import Previewer, PreviewState
-from lpfman.preview._image_backend import show_image, clear_image, ImagePreviewState
+from .base import PreviewState
+from ._image_backend import show_image, clear_image, ImagePreviewState
 
 
 @dataclass
