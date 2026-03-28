@@ -16,7 +16,7 @@ class Previewer(Protocol):
 
     def render(
         self,
-        stdscr: "curses._CursesWindow",
+        stdscr: "curses.window",
         path: str,
         x: int,
         y: int,
