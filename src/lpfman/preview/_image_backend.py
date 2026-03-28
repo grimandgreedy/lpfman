@@ -33,18 +33,22 @@ class UeberzugppBackend:
     _proc: Optional[subprocess.Popen] = None  # class-level — shared across all instances
 
     def ensure_running(self) -> subprocess.Popen:
-        if self._proc is None or self._proc.poll() is not None:
-            UeberzugppBackend._proc = subprocess.Popen(
+        proc = UeberzugppBackend._proc
+        if proc is None or proc.poll() is not None:
+            proc = subprocess.Popen(
                 ["ueberzugpp", "layer", "--parser", "json"],
                 stdin=subprocess.PIPE,
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.PIPE,
                 text=True,
             )
-        return self._proc
+            UeberzugppBackend._proc = proc
+        return proc
 
     def show(self, path: str, identifier: str, x: int, y: int, w: int, h: int) -> None:
         proc = self.ensure_running()
+        if proc.stdin is None:
+            return
         try:
             proc.stdin.write(json.dumps({
                 "action": "add",
@@ -64,6 +68,8 @@ class UeberzugppBackend:
 
     def hide(self, identifier: str) -> None:
         proc = self.ensure_running()
+        if proc.stdin is None:
+            return
         try:
             proc.stdin.write(json.dumps({
                 "action": "remove",
