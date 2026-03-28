@@ -14,7 +14,7 @@ from listpick.pane.pane_utils import get_file_attributes
 from lpfman.utils.lpfman_utils import *
 from lpfman.preview.previewers import display_image_with_icat, clear_kitty_image, extract_album_art, is_kitty_graphics_supported
 from lpfman.pane.ueberzug_pane import display_image, start_ueberzugpp, remove_image
-from lpfman.preview.text_preview import preview_text
+from ..preview.text_previewer import preview_text
 
 def right_split_file_attributes(stdscr, x, y, w, h, state, row, cell, data: list = [], test: bool = False):
     """
@@ -168,7 +168,7 @@ def right_split_file_attributes(stdscr, x, y, w, h, state, row, cell, data: list
         os.makedirs(os.path.dirname(tmp_full_path), exist_ok=True)
         if not os.path.exists(tmp_full_path):
             try:
-                extract_album_art(cell, True, tmp_full_path)
+                extract_album_art(cell, output_image_path=tmp_full_path)
             except:
                 return [cell, False, None]
             # command = f"ffmpegthumbnailer -i {shlex.quote(cell)} -o {tmp_full_path} -s {720}"
