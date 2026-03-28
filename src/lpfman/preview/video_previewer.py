@@ -5,9 +5,9 @@ import subprocess
 from dataclasses import dataclass
 from typing import Optional
 
-from lpfman.preview.base import PreviewState
-from lpfman.preview._thumbnail import thumbnail_path
-from lpfman.preview._image_backend import show_image, clear_image, ImagePreviewState
+from .base import PreviewState
+from ._thumbnail import thumbnail_path
+from ._image_backend import show_image, clear_image, ImagePreviewState
 
 
 @dataclass
