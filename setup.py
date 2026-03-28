@@ -42,6 +42,7 @@ setuptools.setup(
     },
     install_requires = [
         "toml",
+        "curses-syntax-highlighting",
         "pdf2image",
         "listpick >= 0.1.17.2",
         "mutagen",
