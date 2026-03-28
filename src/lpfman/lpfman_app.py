@@ -176,7 +176,7 @@ class FileManager:
 
             self.UI.load_input_history("~/.config/lpfman/cmdhist.json")
 
-            def delete_files_macro():
+            def delete_files_macro(_picker=None):
                 # Get selected indices — use multi-select if available, otherwise current cursor
                 selected = get_selected_indices(self.UI.selections)
                 if not selected:
