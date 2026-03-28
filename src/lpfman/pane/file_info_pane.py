@@ -12,9 +12,10 @@ from pdf2image import convert_from_path
 from listpick.pane.pane_utils import get_file_attributes
 
 from lpfman.utils.lpfman_utils import *
-from lpfman.preview.previewers import display_image_with_icat, clear_kitty_image, extract_album_art, is_kitty_graphics_supported
+from lpfman.preview.previewers import extract_album_art
 from lpfman.pane.ueberzug_pane import display_image, start_ueberzugpp, remove_image
 from ..preview.text_previewer import preview_text
+from lpfman.preview._image_backend import clear_image, ImagePreviewState, show_image as backend_show_image
 
 def right_split_file_attributes(stdscr, x, y, w, h, state, row, cell, data: list = [], test: bool = False):
     """
@@ -45,28 +46,9 @@ def right_split_file_attributes(stdscr, x, y, w, h, state, row, cell, data: list
 
     cell = state["indexed_items"][state["cursor_pos"]][1][0]
 
-    # If we are on a different line and we are displaying an image then clear the image.
-    if len(data) == 3 and cell != data[0] and data[1]:
-        if is_kitty_graphics_supported():
-            # curses.curs_set(0)
-            # clear_kitty_image()
-            # curses.curs_set(0)
-            print("\033_Ga=d\033\\", end="", flush=True)
-        else:
-            old_proc = data[2]
-            remove_image(old_proc, data[0])
-
-            try:
-                old_proc.kill()
-                old_proc.wait()
-                old_proc.stdin.close()
-                old_proc.stderr.close()
-            except:
-                pass
-
-    # Terminate previous display image process if we are on a different val
-    if len(data) == 3 and data[0] != cell and data[1] and data[2] != None:
-        data[2].terminate()
+    # Clear previous image display when navigating to a different file
+    if len(data) == 3 and cell != data[0] and isinstance(data[1], ImagePreviewState):
+        clear_image(data[1])
 
     if os.path.isdir(cell):
         fs = sorted(os.listdir(cell), key=lambda x: (x.startswith('.'), x))
@@ -92,9 +74,9 @@ def right_split_file_attributes(stdscr, x, y, w, h, state, row, cell, data: list
     # stdscr.addstr(y+6, x+1, '─'*(w-1), curses.color_pair(state["colours_start"]+16) | curses.A_REVERSE)
 
     displaying_image = False
+    image_state = None
     proc = None
     code_file_extensions = [".sh", ".srt", ".rs", ".toml"]
-
 
 
 
@@ -107,41 +89,12 @@ def right_split_file_attributes(stdscr, x, y, w, h, state, row, cell, data: list
 
 
     def show_image(path):
-        proc = None
-        try:
-            if is_kitty_graphics_supported() and data[0] != cell:
-                # display_image_with_icat(cell, clear=False)
-                clear = False if len(data) and cell == data[0] else True
-                proc = display_image_with_icat(
-                    path,
-                    x=x+3,
-                    y=y+6,
-                    width=w-5,
-                    height=h-9,
-                    clear=clear,
-                )
-                displaying_image = True
-            else:
-                if len(data) and data[0] != cell:
-                    proc = start_ueberzugpp()
-                    display_image(
-                        proc,
-                        path,
-                        x=x+3,
-                        y=y+6,
-                        width=w-5,
-                        height=h-7,
-                    )
-                # If we are displaying an image and the cursor is on the same cell then make sure we keep the process
-                elif data[0] == cell and data[1]:
-                    proc = data[2]
-        except:
-            pass
-        return proc
+        prev_state = data[1] if len(data) == 3 and isinstance(data[1], ImagePreviewState) else None
+        return backend_show_image(path, x=x+3, y=y+6, w=w-5, h=h-7, prev_state=prev_state)
 
 
     if attributes[1].startswith("Filetype: image/"):
-        proc = show_image(cell)
+        image_state = show_image(cell)
         displaying_image = True
 
 
@@ -154,9 +107,11 @@ def right_split_file_attributes(stdscr, x, y, w, h, state, row, cell, data: list
         os.makedirs(os.path.dirname(tmp_full_path), exist_ok=True)
         if not os.path.exists(tmp_full_path):
             command = f"ffmpegthumbnailer -i {shlex.quote(cell)} -o {tmp_full_path} -s {720}"
-            subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            subprocess.Popen(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            data[:] = [cell, False, None]
+            return None
 
-        proc = show_image(tmp_full_path)
+        image_state = show_image(tmp_full_path)
         displaying_image = True
 
     elif attributes[1].startswith("Filetype: audio/"):
@@ -167,14 +122,17 @@ def right_split_file_attributes(stdscr, x, y, w, h, state, row, cell, data: list
         tmp_full_path = f"/tmp/lpfman/{tmp_fname}"
         os.makedirs(os.path.dirname(tmp_full_path), exist_ok=True)
         if not os.path.exists(tmp_full_path):
-            try:
-                extract_album_art(cell, output_image_path=tmp_full_path)
-            except:
-                return [cell, False, None]
-            # command = f"ffmpegthumbnailer -i {shlex.quote(cell)} -o {tmp_full_path} -s {720}"
-            # subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            def _extract_art(src, dest):
+                try:
+                    extract_album_art(src, output_image_path=dest)
+                except Exception:
+                    pass
+            t = threading.Thread(target=_extract_art, args=(cell, tmp_full_path), daemon=True)
+            t.start()
+            data[:] = [cell, False, None]
+            return None
 
-        proc = show_image(tmp_full_path)
+        image_state = show_image(tmp_full_path)
         displaying_image = True
 
     elif cell.endswith(".epub"):
@@ -186,9 +144,11 @@ def right_split_file_attributes(stdscr, x, y, w, h, state, row, cell, data: list
         os.makedirs(os.path.dirname(tmp_full_path), exist_ok=True)
         if not os.path.exists(tmp_full_path):
             command = f"gnome-epub-thumbnailer {shlex.quote(cell)} {tmp_full_path} -s {512}"
-            subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            subprocess.Popen(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            data[:] = [cell, False, None]
+            return None
 
-        proc = show_image(tmp_full_path)
+        image_state = show_image(tmp_full_path)
         displaying_image = True
 
     elif cell.endswith(".mobi"):
@@ -200,9 +160,11 @@ def right_split_file_attributes(stdscr, x, y, w, h, state, row, cell, data: list
         os.makedirs(os.path.dirname(tmp_full_path), exist_ok=True)
         if not os.path.exists(tmp_full_path):
             command = f"gnome-mobi-thumbnailer {shlex.quote(cell)} {tmp_full_path} -s {512}"
-            subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            subprocess.Popen(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            data[:] = [cell, False, None]
+            return None
 
-        proc = show_image(tmp_full_path)
+        image_state = show_image(tmp_full_path)
         displaying_image = True
 
     elif cell.endswith(".torrent"):
@@ -238,7 +200,7 @@ def right_split_file_attributes(stdscr, x, y, w, h, state, row, cell, data: list
             im_thread.daemon = True
             im_thread.start()
 
-        proc = show_image(tmp_full_path)
+        image_state = show_image(tmp_full_path)
         displaying_image = True
 
     elif re.match(r".*tar\...$", cell):
@@ -251,7 +213,7 @@ def right_split_file_attributes(stdscr, x, y, w, h, state, row, cell, data: list
     elif attributes[1].startswith("Filetype: text/") or cell.endswith(tuple(code_file_extensions)):
         preview_text(
             stdscr,
-            filepath=shlex.quote(cell),
+            filepath=cell,
             code_x=x+3,
             code_y=y+6,
             code_w=w-3,
@@ -261,6 +223,6 @@ def right_split_file_attributes(stdscr, x, y, w, h, state, row, cell, data: list
             theme="dark"
         )
 
-    data[:] = [cell, displaying_image, proc]
+    data[:] = [cell, image_state if displaying_image else False, None]
 
     return []
