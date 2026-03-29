@@ -9,7 +9,7 @@ from .base import PreviewState
 
 
 class ArchivePreviewerImpl:
-    def can_preview(self, path: str, _mime_type: str) -> bool:
+    def can_preview(self, path: str, mime_type: str) -> bool:
         # FIX: original regex r".*tar\...$" only matches single-char suffixes.
         # Use r".*\.tar\..+$" to match .tar.gz, .tar.bz2, .tar.zst, .tar.xz etc.
         return (
@@ -26,7 +26,7 @@ class ArchivePreviewerImpl:
         y: int,
         w: int,
         h: int,
-        _prev_state: Optional[PreviewState],
+        prev_state: Optional[PreviewState],
     ) -> PreviewState:
         if path.endswith(".torrent"):
             cmd = f"transmission-show {shlex.quote(path)}"

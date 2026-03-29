@@ -3,8 +3,8 @@ import os
 from dataclasses import dataclass
 from typing import Optional
 
-from mutagen import File
-from mutagen.id3 import ID3, APIC
+from mutagen import File  # type: ignore[attr-defined]
+from mutagen.id3 import ID3, APIC  # type: ignore[attr-defined]
 
 from .base import PreviewState
 from ._thumbnail import thumbnail_path
@@ -50,7 +50,7 @@ def extract_album_art(audio_path, output_image_path="/tmp/albart.png"):
             cover = covers[0]
             image_data = cover if isinstance(cover, bytes) else cover.data
             # 13 = jpg, 14 = png
-            image_ext = "jpg" if cover.imageformat == 13 else "png"
+            image_ext = "jpg" if getattr(cover, "imageformat", 13) == 13 else "png"
     if image_data:
         if not output_image_path:
             base = os.path.splitext(os.path.basename(audio_path))[0]

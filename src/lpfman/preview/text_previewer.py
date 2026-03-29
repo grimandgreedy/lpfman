@@ -40,7 +40,7 @@ class TextPreviewerImpl:
         y: int,
         w: int,
         h: int,
-        _prev_state: Optional[PreviewState],
+        prev_state: Optional[PreviewState],
     ) -> PreviewState:
         """Render syntax-highlighted text into the terminal region.
 

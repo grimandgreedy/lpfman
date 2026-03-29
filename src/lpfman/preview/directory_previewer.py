@@ -10,7 +10,7 @@ from lpfman.preview.base import PreviewState
 
 
 class DirectoryPreviewerImpl:
-    def can_preview(self, path: str, _mime_type: str) -> bool:
+    def can_preview(self, path: str, mime_type: str) -> bool:
         return os.path.isdir(path)
 
     def render(
@@ -21,7 +21,7 @@ class DirectoryPreviewerImpl:
         y: int,
         w: int,
         h: int,
-        _prev_state: Optional[PreviewState],
+        prev_state: Optional[PreviewState],
     ) -> PreviewState:
         try:
             fs = sorted(os.listdir(path), key=lambda f: (f.startswith("."), f))
