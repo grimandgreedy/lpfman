@@ -211,6 +211,7 @@ class FileManager:
                 "function": delete_files_macro,
             }]
 
+            self.stdscr.bkgd(" ", curses.color_pair(self.UI.colours_start + 3))
             selected_entries, opts, fman_data = self.UI.run()
             self.UI.save_input_history("~/.config/lpfman/cmdhist.json")
 
