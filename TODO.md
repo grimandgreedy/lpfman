@@ -1,9 +1,13 @@
- - Sort order when changing directories.
- - Default sort order of columns
- - .. should always be sorted to the top...
-   - Custom sort?
- - image remains on screen after closing pane
- - Delete file and refresh... file is still there. The refresh should also refresh the files.
- - Remember selected directory of previous location
- - Cancel filter when changing directories
- - search/filter history
+ - [ ] Sort order when changing directories.
+ - [ ] Default sort order of columns
+ - [ ] .. should always be sorted to the top...
+   -  [ ] Custom sort?
+ - [ ] image remains on screen after closing pane
+ - [ ] Delete file and refresh... file is still there. The refresh should also refresh the files.
+ - [ ] Remember selected directory of previous location
+ - [ ] Cancel filter when changing directories
+ - [ ] search/filter history
+ - [ ] Add ability to define columns dynamically in lpfman config
+ - [ ] Allow column presets to be defined
+ - [ ] Ensure that we can kill the column data generation
+ - [ ] When we change directories there is a noticable black flicker because we reload the picker.
